@@ -3,3 +3,5 @@
 .lsp/
 .calva/
 target/
+work-log-files/
+.nrepl-port
