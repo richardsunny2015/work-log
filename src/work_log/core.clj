@@ -32,6 +32,23 @@
       (spit tasks-file {})
       (spit categories-file {}))))
 
+(defn- close-program
+  "Takes tasks, task, and seconds atom to update task-file
+   and returns a shutdown hook."
+  [tasks task seconds]
+  (fn []
+    (let [task-map (-> tasks
+                       (get task)
+                       (update :elapsed-time + @seconds))]
+      (spit-map-into-file tasks-file tasks task task-map))))
+
+(defn display-time
+  [seconds]
+  (format "%02d:%02d:%02d"
+          (quot @seconds (* 60 60))
+          (mod (quot @seconds 60) 60)
+          (mod @seconds 60)))
+
 (defn add-task [[task & [category]]]
   (let [tasks (get-tasks)
         categories (get-categories)
@@ -65,5 +82,18 @@
     (throw (ex-info "Unknown object to add"
                     {:obj obj}))))
 
-(defn start-task [[task]])
+(defn start-task [[task]]
+  (let [tasks (get-tasks)
+        seconds (atom 0)]
+    (when-not (contains? tasks task)
+      (throw (ex-info "Task does not exist"
+                      {:task task})))
+    (.addShutdownHook (Runtime/getRuntime)
+                      (Thread. (close-program tasks task seconds)))
+    (loop []
+      (print (str "\r" (display-time seconds)))
+      (Thread/sleep 1000)
+      (swap! seconds inc)
+      (flush)
+      (recur))))
 

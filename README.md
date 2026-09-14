@@ -4,6 +4,13 @@
 
 It's best if you alias `java -jar path/to/jar/file` as `work-log`.
 
+## Build
+
+To build using clj tools:
+```bash
+clj -T:build uber
+```
+
 ## Usages
 
 ```bash

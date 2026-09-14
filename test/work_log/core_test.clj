@@ -50,3 +50,12 @@
           result (-> (core/get-tasks)
                      (get task))]
       (is (= expected result)))))
+
+(deftest display-time-test
+  (testing "should display correct time based on seconds"
+    (is (= "00:00:00" (core/display-time (atom 0))))
+    (is (= "00:01:40" (core/display-time (atom 100))))
+    (is (= "01:00:00" (core/display-time (atom (* 60 60)))))
+    (is (= "240:30:59" (core/display-time (atom (+ (* 60 60 240)
+                                                   (* 60 30)
+                                                   59)))))))
