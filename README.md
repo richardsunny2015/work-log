@@ -11,6 +11,12 @@ To build using clj tools:
 clj -T:build uber
 ```
 
+## Tests
+To run tests using clj tools:
+```bash
+clj -M:test
+```
+
 ## Usages
 
 ```bash
