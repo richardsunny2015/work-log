@@ -1,6 +1,6 @@
-{
- :paths ["src"]
- :deps {org.clojure/clojure {:mvn/version "1.12.6"}}
+{:paths ["src"]
+ :deps {dev.weavejester/medley {:mvn/version "1.10.0"}
+        org.clojure/clojure {:mvn/version "1.12.6"}}
  :aliases
  {:build {:extra-deps {io.github.clojure/tools.build
                        {:git/tag "v0.10.14" :git/sha "1176afd"}}
@@ -8,6 +8,4 @@
           :extra-paths ["build"]}
   :test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}}
          :main-opts ["-m" "kaocha.runner"]
-         :extra-paths ["test"]}}
-
-}
+         :extra-paths ["test"]}}}

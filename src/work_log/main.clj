@@ -8,5 +8,6 @@
     (case operation
       "start" (core/start-task (rest args))
       "add" (core/add (rest args))
+      "list" (core/list-objects (rest args))
       (throw (ex-info "Unsupported operation"
                       {:operation operation})))))
