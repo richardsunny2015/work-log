@@ -5,44 +5,58 @@
   (:import [java.io PushbackReader]))
 
 (def work-log-dir "work-log-files/")
+(def tasks-file (str work-log-dir "tasks.edn"))
+(def categories-file (str work-log-dir "categories.edn"))
 
-(defn edn-file->map [file-name]
+(defn- edn-file->map [file-name]
   (with-open [r (io/reader file-name)]
     (edn/read (PushbackReader. r))))
+
+(defn get-tasks
+  []
+  (edn-file->map tasks-file))
+
+(defn get-categories
+  []
+  (edn-file->map categories-file))
+
+(defn- spit-map-into-file
+  "Spits map into a file with kv assoc-ed into it."
+  [filename x-map k v]
+  (spit filename (with-out-str (pprint/pprint (assoc x-map k v)))))
 
 (defn maybe-setup-files []
   (let [d (io/file work-log-dir)]
     (when-not (and (.exists d) (.isDirectory d))
       (.mkdir d)
-      (spit (str work-log-dir "tasks.edn") {})
-      (spit (str work-log-dir "categories.edn") {}))))
+      (spit tasks-file {})
+      (spit categories-file {}))))
 
 (defn add-task [[task & [category]]]
-  (let [task-file (str work-log-dir "tasks.edn")
-        tasks (edn-file->map task-file)
-        categories (edn-file->map (str work-log-dir "categories.edn"))
-        category-exists? (and (not (nil? category)) (contains? categories category))
+  (let [tasks (get-tasks)
+        categories (get-categories)
+        category-exists? (and (not (nil? category))
+                              (contains? categories category))
         task-map (cond-> {:name task
                           :elapsed-time 0}
                    category-exists? (assoc :category category))]
     (when (contains? tasks task)
       (throw (ex-info "Task already exists"
                       {:existing-task task})))
-    (spit task-file (with-out-str (pprint/pprint (assoc tasks task task-map))))
+    (spit-map-into-file tasks-file tasks task task-map)
     (println "Added task" task)
     (when (and (not (nil? category))
                (not category-exists?))
       (println "Task added without non-existent category" category))))
 
 (defn add-category [[category]]
-  (let [categories-file (str work-log-dir "categories.edn")
-        categories (edn-file->map categories-file)
+  (let [categories (get-categories)
         category-map {:name category}]
     (when (contains? categories category)
       (throw (ex-info "Category already exists"
                       {:existing-category category})))
-    (spit categories-file (with-out-str (pprint/pprint
-                                         (assoc categories category category-map))))))
+    (spit-map-into-file categories-file categories
+                        category category-map)))
 
 (defn add [[obj & args]]
   (case obj

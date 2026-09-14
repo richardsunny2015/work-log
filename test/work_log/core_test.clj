@@ -1,7 +1,7 @@
 (ns work-log.core-test
   (:require [clojure.test :refer [deftest testing is use-fixtures]]
             [work-log.core :as core]
-            [work-log.fixture :refer [test-fixture test-dir]])
+            [work-log.fixture :refer [test-fixture]])
   (:import [clojure.lang ExceptionInfo]))
 
 (use-fixtures :each test-fixture)
@@ -15,7 +15,7 @@
       (let [expected {:name task
                       :elapsed-time 0}
             _ (core/add ["task" task])
-            result (-> (core/edn-file->map (str test-dir "tasks.edn"))
+            result (-> (core/get-tasks)
                        (get task))]
 
         (is (= expected result))))
@@ -26,7 +26,7 @@
     (testing "adds category if previously non-existent"
       (let [expected {:name category}
             _ (core/add ["category" category])
-            result (-> (core/edn-file->map (str test-dir "categories.edn"))
+            result (-> (core/get-categories)
                        (get category))]
         (is (= expected result))))
     (testing "throws error for already existing category"
@@ -38,7 +38,7 @@
                       :elapsed-time 0
                       :category category}
             _ (core/add ["task" task category])
-            result (-> (core/edn-file->map (str test-dir "tasks.edn"))
+            result (-> (core/get-tasks)
                        (get task))]
         (is (= expected result)))))
   (testing "adds task without category if category does not exist"
@@ -47,6 +47,6 @@
           expected {:name task
                     :elapsed-time 0}
           _ (core/add ["task" task category])
-          result (-> (core/edn-file->map (str test-dir "tasks.edn"))
+          result (-> (core/get-tasks)
                      (get task))]
       (is (= expected result)))))
