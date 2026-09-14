@@ -131,6 +131,7 @@
                       {:entered-task task})))
     (.addShutdownHook (Runtime/getRuntime)
                       (Thread. (close-program tasks task seconds)))
+    (println "Shutdown program to save time elapsed.")
     (loop []
       (print (str "\r" (display-time @seconds)))
       (Thread/sleep 1000)
