@@ -1,5 +1,10 @@
 # work-log
 
+`work-log` is a command-line app that logs how long you have been working on something.
+It was made to be manually shut down to force you to be aware of when you
+context switch. It is split between `tasks` and `categories`. `categories` have many
+`tasks`, but `tasks` can only have one `category`.
+
 ## Setup
 
 It's best if you alias `java -jar path/to/jar/file` as `work-log`.
