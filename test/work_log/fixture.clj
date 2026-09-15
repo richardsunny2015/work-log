@@ -2,7 +2,7 @@
   (:require [clojure.java.io :as io]
             [work-log.core :as core]))
 
-(def test-dir (str "test/" core/work-log-dir))
+(def test-dir "test/work-log-files/")
 (def tasks-file (str test-dir "tasks.edn"))
 (def categories-file (str test-dir "categories.edn"))
 

@@ -6,7 +6,7 @@
             [medley.core :as m])
   (:import [java.io PushbackReader]))
 
-(def work-log-dir "work-log-files/")
+(def work-log-dir (str (System/getProperty "user.home") "/work-log-files/"))
 (def tasks-file (str work-log-dir "tasks.edn"))
 (def categories-file (str work-log-dir "categories.edn"))
 
@@ -68,7 +68,35 @@
                           (reduce + 0))]
     (map->display-row (assoc category :elapsed-time elapsed-time))))
 
-(defn add-task [[task & [category]]]
+(defn- validate-edit-category
+  [categories category name]
+  (when (nil? name)
+    (throw (ex-info "No name inputted for category edit"
+                    {:category category})))
+  (when-not (contains? categories category)
+    (throw (ex-info "Invalid category for edit"
+                    {:category category})))
+  (when (contains? categories name)
+    (throw (ex-info "Name already in use for category edit"
+                    {:category category
+                     :name name}))))
+
+(defn- validate-edit-task
+  "Validates arguments for editting a task"
+  [tasks categories task {:keys [category name] :as _options}]
+  (when-not (contains? tasks task)
+    (throw (ex-info "Invalid task for edit"
+                    {:inputted-task task})))
+  (when (and (not (nil? category)) (not (contains? categories category)))
+    (throw (ex-info "Invalid category for task edit"
+                    {:inputted-task task
+                     :category category})))
+  (when (and (not (nil? name)) (contains? tasks name))
+    (throw (ex-info "Name already in use for task edit"
+                    {:inputted-task task
+                     :name name}))))
+
+(defn- add-task [[task & [category]]]
   (let [tasks (get-tasks)
         categories (get-categories)
         category-exists? (and (not (nil? category))
@@ -85,7 +113,7 @@
                (not category-exists?))
       (println "Task added without non-existent category" category))))
 
-(defn add-category [[category]]
+(defn- add-category [[category]]
   (let [categories (get-categories)
         category-map {:name category}]
     (when (contains? categories category)
@@ -109,6 +137,43 @@
                         (map (partial xform-category tasks)))]
     (pprint/print-table ["Name" "Elapsed Time"] categories)))
 
+(defn- edit-task [[task] {:keys [category name] :as options}]
+  (let [tasks (get-tasks)
+        categories (get-categories)
+        task-map (get tasks task)]
+    (validate-edit-task tasks categories task options)
+    (spit tasks-file
+          (with-out-str
+            (pprint/pprint
+             (-> tasks
+                 (dissoc task) ;; remove task because task may be renamed
+                 (assoc (or name task)
+                        (m/assoc-some task-map
+                                      :name name
+                                      :category category))))))))
+
+(defn- edit-category [[category] {:keys [name]}]
+  (let [categories (get-categories)
+        tasks (get-tasks)]
+    (validate-edit-category categories category name)
+    (spit categories-file
+          (with-out-str
+            (pprint/pprint
+             (-> categories
+                 (dissoc category)
+                 (assoc name {:name name})))))
+    (spit tasks-file
+          (with-out-str
+            (pprint/pprint
+             (m/map-vals
+              (fn [task-map]
+                (cond-> task-map
+                  (= category (:category task-map))
+                  (assoc :category name)))
+              tasks))))))
+
+;; API
+
 (defn list-objects [[obj]]
   (case obj
     "task" (list-tasks)
@@ -123,11 +188,18 @@
     (throw (ex-info "Unknown object to add"
                     {:obj obj}))))
 
+(defn edit [[obj & args] options]
+  (case obj
+    "task" (edit-task args options)
+    "category" (edit-category args options)
+    (throw (ex-info "Unknown object to edit"
+                    {:obj obj}))))
+
 (defn start-task [[task]]
   (let [tasks (get-tasks)
         seconds (atom 0)]
     (when-not (contains? tasks task)
-      (throw (ex-info "Task does not exist"
+      (throw (ex-info "Task does not exist. Use `add task TASK`."
                       {:entered-task task})))
     (.addShutdownHook (Runtime/getRuntime)
                       (Thread. (close-program tasks task seconds)))

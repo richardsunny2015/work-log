@@ -29,3 +29,8 @@ work-log edit task TASK --name NEW_TASK_NAME
 work-log edit category CATEGORY --name NEW_CATEGORY_NAME
 work-log start TASK
 ```
+
+Can also be run with clj:
+```bash
+clj -M -m work-log.main
+```

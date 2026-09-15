@@ -1,6 +1,7 @@
 {:paths ["src"]
  :deps {dev.weavejester/medley {:mvn/version "1.10.0"}
-        org.clojure/clojure {:mvn/version "1.12.6"}}
+        org.clojure/clojure {:mvn/version "1.12.6"}
+        org.clojure/tools.cli {:mvn/version "1.4.256"}}
  :aliases
  {:build {:extra-deps {io.github.clojure/tools.build
                        {:git/tag "v0.10.14" :git/sha "1176afd"}}
